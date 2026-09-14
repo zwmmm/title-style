@@ -1,5 +1,5 @@
-import { useCallback, useMemo, useState } from "react";
-import { Text, TextInput, View } from "react-native";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { Text, TextInput } from "react-native";
 import {
   useSettings,
   type PluginSurfaceProps,
@@ -11,7 +11,6 @@ import {
   SettingsInput,
   SettingsRow,
   SettingsSection,
-  SettingsSwitch,
 } from "@getpaseo/plugin/client/ui";
 import { titleStyleSettings } from "../shared/settings";
 import { detectLocale, strings } from "./i18n";
@@ -20,6 +19,8 @@ type ReadySettings = Extract<
   SettingsState<typeof titleStyleSettings.schema>,
   { status: "ready" }
 >;
+
+const AUTOSAVE_DELAY_MS = 600;
 
 function Editor({
   settings,
@@ -40,18 +41,20 @@ function Editor({
     (model: string) => setDraft((current) => ({ ...current, model })),
     [],
   );
-  const toggleEnabled = useCallback(
-    (enabled: boolean) => {
-      void settings.save({ ...settings.values, enabled }, settings.revision);
-    },
-    [settings],
-  );
-  const saveText = useCallback(async () => {
-    await settings.save(
-      { ...settings.values, instructions: draft.instructions, model: draft.model },
-      settings.revision,
-    );
-  }, [settings, draft]);
+  const dirty =
+    draft.instructions !== settings.values.instructions ||
+    draft.model !== settings.values.model;
+  // Debounced auto-save; stops on a failed save until the next edit.
+  useEffect(() => {
+    if (!dirty || settings.saving || settings.saveError) return;
+    const id = setTimeout(() => {
+      void settings.save(
+        { ...settings.values, instructions: draft.instructions, model: draft.model },
+        settings.revision,
+      );
+    }, AUTOSAVE_DELAY_MS);
+    return () => clearTimeout(id);
+  }, [dirty, settings, draft]);
   const styles = useMemo(
     () => ({
       muted: { color: theme.colors.foregroundMuted },
@@ -70,57 +73,32 @@ function Editor({
     [theme],
   );
   return (
-    <>
-      <SettingsSection title={t.general}>
-        <SettingsCard>
-          <SettingsSwitch
-            label={t.enableTitle}
-            hint={t.enableHint}
-            value={settings.values.enabled}
-            disabled={settings.saving}
-            onValueChange={toggleEnabled}
+    <SettingsSection title={t.promptSection}>
+      <SettingsCard>
+        <SettingsRow label={t.promptLabel} hint={t.promptHint}>
+          <TextInput
+            multiline
+            value={draft.instructions}
+            onChangeText={changeInstructions}
+            editable={!settings.saving}
+            style={styles.input}
           />
-        </SettingsCard>
-      </SettingsSection>
-      <SettingsSection title={t.promptSection}>
-        <SettingsCard>
-          <SettingsRow label={t.promptLabel} hint={t.promptHint}>
-            <TextInput
-              multiline
-              value={draft.instructions}
-              onChangeText={changeInstructions}
-              editable={!settings.saving}
-              style={styles.input}
-            />
-          </SettingsRow>
-          <SettingsInput
-            label={t.modelLabel}
-            hint={t.modelHint}
-            placeholder={t.modelPlaceholder}
-            initialValue={draft.model}
-            onChangeText={changeModel}
-            disabled={settings.saving}
-          />
-          <SettingsAction
-            label={t.promptLabel}
-            actionLabel={settings.saving ? t.saving : t.save}
-            disabled={settings.saving}
-            onPress={() => void saveText()}
-          />
-          <SettingsAction
-            label={t.resetLabel}
-            actionLabel={t.resetAction}
-            disabled={settings.saving}
-            onPress={() => void settings.reset()}
-          />
-        </SettingsCard>
-        {settings.saveError ? (
-          <Text accessibilityRole="alert" style={styles.muted}>
-            {settings.saveError}
-          </Text>
-        ) : null}
-      </SettingsSection>
-    </>
+        </SettingsRow>
+        <SettingsInput
+          label={t.modelLabel}
+          hint={t.modelHint}
+          placeholder={t.modelPlaceholder}
+          initialValue={draft.model}
+          onChangeText={changeModel}
+          disabled={settings.saving}
+        />
+      </SettingsCard>
+      {settings.saveError ? (
+        <Text accessibilityRole="alert" style={styles.muted}>
+          {settings.saveError}
+        </Text>
+      ) : null}
+    </SettingsSection>
   );
 }
 
