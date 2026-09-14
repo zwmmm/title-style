@@ -14,11 +14,19 @@ paseo plugin add zwmmm/title-style
 
 ## 设置
 
-Settings → Plugins → title-style → 打开「标题生成」，编辑提示词后点「保存」，下个新会话生效。默认提示词：
+Settings → Plugins → title-style → 打开「设置」（界面语言跟随系统语言，中文/英文）：
+
+| 设置项 | 说明 |
+| --- | --- |
+| 启用标题生成 | 关闭后新会话不再自动重命名，即时生效 |
+| 提示词 | 生成标题的提示词，点「保存」后生效，可以指定任何语言或风格 |
+| 模型覆盖 | 留空时跟随 Settings → Host → Metadata 的模型配置；填 `provider/model` 可覆盖 |
+
+默认提示词：
 
 > 用简体中文生成一个简短的任务型标题（不超过 30 个字）：请求的操作 + 具体对象 + 关键标识符。直接输出标题文本，不要解释、引号或前后缀。
 
-改坏了想恢复默认，把上面的文案粘回去即可。停用插件用插件列表的启停按钮；需要覆盖模型时，编辑 `~/.paseo/plugin-settings/title-style/title-style.json` 里的 `values.model`（`provider/model`，留空跟随 Metadata 模型配置）。
+改坏了想恢复默认，点「恢复默认设置」，或把上面的文案粘回去。
 
 ## 工作方式
 

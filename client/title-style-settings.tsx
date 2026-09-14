@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState } from "react";
-import { Text, TextInput } from "react-native";
+import { Text, TextInput, View } from "react-native";
 import {
   useSettings,
   type PluginSurfaceProps,
@@ -8,10 +8,13 @@ import {
 import {
   SettingsAction,
   SettingsCard,
+  SettingsInput,
   SettingsRow,
   SettingsSection,
+  SettingsSwitch,
 } from "@getpaseo/plugin/client/ui";
 import { titleStyleSettings } from "../shared/settings";
+import { detectLocale, strings } from "./i18n";
 
 type ReadySettings = Extract<
   SettingsState<typeof titleStyleSettings.schema>,
@@ -21,16 +24,37 @@ type ReadySettings = Extract<
 function Editor({
   settings,
   theme,
+  locale,
 }: {
   settings: ReadySettings;
   theme: PluginSurfaceProps["theme"];
+  locale: "zh" | "en";
 }) {
-  const [draft, setDraft] = useState(() => settings.values.instructions);
-  const save = useCallback(async () => {
-    await settings.save({ ...settings.values, instructions: draft }, settings.revision);
+  const t = strings[locale];
+  const [draft, setDraft] = useState(() => settings.values);
+  const changeInstructions = useCallback(
+    (instructions: string) => setDraft((current) => ({ ...current, instructions })),
+    [],
+  );
+  const changeModel = useCallback(
+    (model: string) => setDraft((current) => ({ ...current, model })),
+    [],
+  );
+  const toggleEnabled = useCallback(
+    (enabled: boolean) => {
+      void settings.save({ ...settings.values, enabled }, settings.revision);
+    },
+    [settings],
+  );
+  const saveText = useCallback(async () => {
+    await settings.save(
+      { ...settings.values, instructions: draft.instructions, model: draft.model },
+      settings.revision,
+    );
   }, [settings, draft]);
   const styles = useMemo(
     () => ({
+      muted: { color: theme.colors.foregroundMuted },
       input: {
         color: theme.colors.foreground,
         backgroundColor: theme.colors.surface1,
@@ -42,49 +66,77 @@ function Editor({
         fontSize: 13,
         textAlignVertical: "top" as const,
       },
-      muted: { color: theme.colors.foregroundMuted },
     }),
     [theme],
   );
   return (
-    <SettingsSection title="标题提示词">
-      <SettingsCard>
-        <SettingsRow label="提示词" hint="决定标题的语言和风格">
-          <TextInput
-            multiline
-            value={draft}
-            onChangeText={setDraft}
-            editable={!settings.saving}
-            style={styles.input}
+    <>
+      <SettingsSection title={t.general}>
+        <SettingsCard>
+          <SettingsSwitch
+            label={t.enableTitle}
+            hint={t.enableHint}
+            value={settings.values.enabled}
+            disabled={settings.saving}
+            onValueChange={toggleEnabled}
           />
-        </SettingsRow>
-        <SettingsAction
-          label="保存提示词"
-          actionLabel={settings.saving ? "保存中…" : "保存"}
-          disabled={settings.saving || draft === settings.values.instructions}
-          onPress={() => void save()}
-        />
-      </SettingsCard>
-      {settings.saveError ? (
-        <Text accessibilityRole="alert" style={styles.muted}>
-          {settings.saveError}
-        </Text>
-      ) : null}
-    </SettingsSection>
+        </SettingsCard>
+      </SettingsSection>
+      <SettingsSection title={t.promptSection}>
+        <SettingsCard>
+          <SettingsRow label={t.promptLabel} hint={t.promptHint}>
+            <TextInput
+              multiline
+              value={draft.instructions}
+              onChangeText={changeInstructions}
+              editable={!settings.saving}
+              style={styles.input}
+            />
+          </SettingsRow>
+          <SettingsInput
+            label={t.modelLabel}
+            hint={t.modelHint}
+            placeholder={t.modelPlaceholder}
+            initialValue={draft.model}
+            onChangeText={changeModel}
+            disabled={settings.saving}
+          />
+          <SettingsAction
+            label={t.promptLabel}
+            actionLabel={settings.saving ? t.saving : t.save}
+            disabled={settings.saving}
+            onPress={() => void saveText()}
+          />
+          <SettingsAction
+            label={t.resetLabel}
+            actionLabel={t.resetAction}
+            disabled={settings.saving}
+            onPress={() => void settings.reset()}
+          />
+        </SettingsCard>
+        {settings.saveError ? (
+          <Text accessibilityRole="alert" style={styles.muted}>
+            {settings.saveError}
+          </Text>
+        ) : null}
+      </SettingsSection>
+    </>
   );
 }
 
 export function TitleStyleSettings({ theme }: PluginSurfaceProps) {
   const settings = useSettings(titleStyleSettings);
+  const locale = useMemo(() => detectLocale(), []);
+  const t = strings[locale];
   const style = useMemo(() => ({ color: theme.colors.foreground }), [theme]);
-  if (settings.status === "loading") return <Text style={style}>加载设置中…</Text>;
+  if (settings.status === "loading") return <Text style={style}>{t.loading}</Text>;
   if (settings.status !== "ready") {
     return (
-      <SettingsSection title="会话标题生成">
+      <SettingsSection title={t.promptSection}>
         <Text style={style}>{settings.error}</Text>
-        <SettingsAction label="重试" actionLabel="重新加载" onPress={settings.reload} />
+        <SettingsAction label={t.retry} actionLabel={t.reload} onPress={settings.reload} />
       </SettingsSection>
     );
   }
-  return <Editor settings={settings} theme={theme} />;
+  return <Editor settings={settings} theme={theme} locale={locale} />;
 }
