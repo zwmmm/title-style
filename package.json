@@ -1,7 +1,7 @@
 {
   "name": "title-style",
   "private": true,
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Rename Paseo workspaces with a configurable LLM prompt — Chinese titles by default, following the metadata-generation model config",
   "author": "zwmmm",
   "license": "MIT",

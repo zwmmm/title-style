@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState } from "react";
-import { Text, TextInput, View } from "react-native";
+import { Text, TextInput } from "react-native";
 import {
   useSettings,
   type PluginSurfaceProps,
@@ -8,10 +8,8 @@ import {
 import {
   SettingsAction,
   SettingsCard,
-  SettingsInput,
   SettingsRow,
   SettingsSection,
-  SettingsSwitch,
 } from "@getpaseo/plugin/client/ui";
 import { titleStyleSettings } from "../shared/settings";
 
@@ -20,38 +18,19 @@ type ReadySettings = Extract<
   { status: "ready" }
 >;
 
-function Controls({
+function Editor({
   settings,
   theme,
 }: {
   settings: ReadySettings;
   theme: PluginSurfaceProps["theme"];
 }) {
-  const [draft, setDraft] = useState(() => settings.values);
-  const changeInstructions = useCallback(
-    (instructions: string) => setDraft((current) => ({ ...current, instructions })),
-    [],
-  );
-  const changeModel = useCallback(
-    (model: string) => setDraft((current) => ({ ...current, model })),
-    [],
-  );
-  const toggleEnabled = useCallback(
-    (enabled: boolean) => {
-      void settings.save({ ...settings.values, enabled }, settings.revision);
-    },
-    [settings],
-  );
-  const saveText = useCallback(async () => {
-    await settings.save(
-      { ...settings.values, instructions: draft.instructions, model: draft.model },
-      settings.revision,
-    );
+  const [draft, setDraft] = useState(() => settings.values.instructions);
+  const save = useCallback(async () => {
+    await settings.save({ ...settings.values, instructions: draft }, settings.revision);
   }, [settings, draft]);
   const styles = useMemo(
     () => ({
-      text: { color: theme.colors.foreground },
-      muted: { color: theme.colors.foregroundMuted },
       input: {
         color: theme.colors.foreground,
         backgroundColor: theme.colors.surface1,
@@ -63,64 +42,35 @@ function Controls({
         fontSize: 13,
         textAlignVertical: "top" as const,
       },
+      muted: { color: theme.colors.foregroundMuted },
     }),
     [theme],
   );
   return (
-    <>
-      <SettingsSection title="开关">
-        <SettingsCard>
-          <SettingsSwitch
-            label="启用标题生成"
-            hint="关闭后新会话不再自动重命名"
-            value={settings.values.enabled}
-            disabled={settings.saving}
-            onValueChange={toggleEnabled}
+    <SettingsSection title="标题提示词">
+      <SettingsCard>
+        <SettingsRow label="提示词" hint="决定标题的语言和风格">
+          <TextInput
+            multiline
+            value={draft}
+            onChangeText={setDraft}
+            editable={!settings.saving}
+            style={styles.input}
           />
-        </SettingsCard>
-      </SettingsSection>
-      <SettingsSection title="标题提示词">
-        <SettingsCard>
-          <SettingsRow label="提示词" hint="决定标题的语言和风格">
-            <TextInput
-              multiline
-              value={draft.instructions}
-              onChangeText={changeInstructions}
-              editable={!settings.saving}
-              style={styles.input}
-            />
-          </SettingsRow>
-          <SettingsInput
-            label="模型覆盖"
-            hint="留空跟随 Metadata 模型配置，格式 provider/model"
-            placeholder="例如 anthropic/claude-haiku-4-5"
-            initialValue={draft.model}
-            onChangeText={changeModel}
-            disabled={settings.saving}
-          />
-          <SettingsAction
-            label="提示词与模型"
-            actionLabel={settings.saving ? "保存中…" : "保存"}
-            disabled={settings.saving}
-            onPress={() => void saveText()}
-          />
-          <SettingsAction
-            label="恢复默认"
-            actionLabel="恢复默认设置"
-            disabled={settings.saving}
-            onPress={() => void settings.reset()}
-          />
-        </SettingsCard>
-        {settings.saveError ? (
-          <Text accessibilityRole="alert" style={styles.muted}>
-            {settings.saveError}
-          </Text>
-        ) : null}
-        <View>
-          <Text style={styles.muted}>当前提示词：{settings.values.instructions}</Text>
-        </View>
-      </SettingsSection>
-    </>
+        </SettingsRow>
+        <SettingsAction
+          label="保存提示词"
+          actionLabel={settings.saving ? "保存中…" : "保存"}
+          disabled={settings.saving || draft === settings.values.instructions}
+          onPress={() => void save()}
+        />
+      </SettingsCard>
+      {settings.saveError ? (
+        <Text accessibilityRole="alert" style={styles.muted}>
+          {settings.saveError}
+        </Text>
+      ) : null}
+    </SettingsSection>
   );
 }
 
@@ -133,15 +83,8 @@ export function TitleStyleSettings({ theme }: PluginSurfaceProps) {
       <SettingsSection title="会话标题生成">
         <Text style={style}>{settings.error}</Text>
         <SettingsAction label="重试" actionLabel="重新加载" onPress={settings.reload} />
-        {settings.status === "invalid" ? (
-          <SettingsAction
-            label="存储数据无效"
-            actionLabel="恢复默认设置"
-            onPress={() => void settings.reset()}
-          />
-        ) : null}
       </SettingsSection>
     );
   }
-  return <Controls settings={settings} theme={theme} />;
+  return <Editor settings={settings} theme={theme} />;
 }
