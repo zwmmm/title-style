@@ -148,6 +148,10 @@ export async function nameWorkspace(
       },
       title: OUR_AGENT_TITLE,
       prompt: promptText,
+      // Delegate to the triggering agent (same label the daemon's MCP create_agent
+      // path sets). Delegated agents skip attention broadcasts, so the generator
+      // finishing never raises a notification.
+      labels: { "paseo.parent-agent-id": agent.id },
     });
     let lastMessage: string | null = null;
     try {
