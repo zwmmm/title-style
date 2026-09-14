@@ -19,7 +19,7 @@ paseo plugin add zwmmm/title-style
 | 设置项 | 说明 |
 | --- | --- |
 | `enabled` | 插件开关 |
-| `instructions` | 生成标题的提示词，修改后即时生效，可以指定任何语言或风格 |
+| `instructions` | 生成标题的提示词，点「保存」后生效，可以指定任何语言或风格 |
 | `model` | 留空时跟随 Settings → Host → Metadata 的模型配置；填 `provider/model` 可覆盖 |
 
 ## 工作方式
