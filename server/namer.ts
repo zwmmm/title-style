@@ -1,9 +1,12 @@
 import { readFile } from "node:fs/promises";
 import { homedir } from "node:os";
 import path from "node:path";
-import type { PaseoApi } from "@getpaseo/client";
-import type { PluginHookAgent } from "@getpaseo/plugin/server";
+import type { PluginHookAgent, PluginHookContext } from "@getpaseo/plugin/server";
 import { titleStyleSettings, type TitleStyleSettings } from "../shared/settings";
+
+// The Paseo client is supplied by the host at runtime. Derive its type from the
+// plugin SDK contract so the bundle needs no local @getpaseo/client install.
+type PaseoApi = PluginHookContext["paseo"];
 
 const MAX_TITLE_CHARS = 80;
 const PROMPT_SOURCE_MAX_CHARS = 600;
