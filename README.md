@@ -9,12 +9,6 @@ Paseo 内置的自动命名输出英文且没有全局语言配置。本插件�
 ## Install
 
 ```bash
-paseo plugin install npm:@hisanyi/paseo-title-style
-```
-
-也可以通过 Git 安装：
-
-```bash
 paseo plugin install git:zwmmm/title-style
 ```
 
