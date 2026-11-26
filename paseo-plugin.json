@@ -2,12 +2,18 @@
   "id": "title-style",
   "name": "Title style",
   "description": "Rename Paseo workspaces with a configurable LLM prompt — Chinese titles by default",
+  "translations": {
+    "zh-CN": {
+      "name": "标题样式",
+      "description": "使用可配置的提示词生成工作区标题，默认使用简体中文。"
+    }
+  },
   "icon": "assets/icon.png",
   "media": [
     "assets/title-style-sidebar.png",
     "assets/title-style-settings.png"
   ],
   "requirements": {
-    "paseo": ">=0.8.0"
+    "paseo": ">=0.17.4"
   }
 }

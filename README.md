@@ -12,7 +12,7 @@ Paseo 内置的自动命名输出英文且没有全局语言配置。本插件�
 paseo plugin install git:zwmmm/title-style
 ```
 
-需要 Paseo ≥ 0.8.0，并且已开启插件（Settings → Plugins → Enable plugins，或 `~/.paseo/config.json` 中 `"pluginsEnabled": true`）。
+需要 Paseo ≥ 0.17.4，并且已开启插件（Settings → Plugins → Enable plugins，或 `~/.paseo/config.json` 中 `"pluginsEnabled": true`）。
 
 ## 设置
 
