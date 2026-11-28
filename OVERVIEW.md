@@ -6,6 +6,8 @@ Title style generates descriptive workspace titles in Paseo automatically using 
 
 When a new workspace is created and its first agent starts, the plugin runs a lightweight background agent to summarize the initial prompt into a clean, task-focused title. The generated title updates the workspace name in the sidebar. The background agent is delegated and archived immediately after completion, running quietly without generating notifications.
 
+Personal Assistants sessions keep their own titles and skip title generation.
+
 ## Configuration
 
 Open Settings → Plugins → Title style to configure the plugin:

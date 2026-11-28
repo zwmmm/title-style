@@ -13,6 +13,7 @@ const GENERATE_TIMEOUT_MS = 30_000;
 // English generator landing, not a user rename.
 const BUILTIN_WINDOW_MS = 60_000;
 const OUR_AGENT_TITLE = "会话标题生成";
+const PERSONAL_ASSISTANT_ID = "personal-assistants.bot-id";
 
 const processed = new Set<string>();
 const inFlight = new Set<string>();
@@ -101,7 +102,11 @@ export async function nameWorkspace(
   createdAt: number,
 ): Promise<void> {
   const workspaceId = agent.workspaceId;
-  if (!workspaceId || agent.title === OUR_AGENT_TITLE) return;
+  if (
+    !workspaceId ||
+    agent.title === OUR_AGENT_TITLE ||
+    typeof agent.metadata?.[PERSONAL_ASSISTANT_ID] === "string"
+  ) return;
   if (processed.has(workspaceId) || inFlight.has(workspaceId)) return;
 
   // The event payload carries config.title, which is unset for agents created
